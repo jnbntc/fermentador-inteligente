@@ -1,5 +1,5 @@
 {
-  "name": "Fermentador Edge (ESP32 PIO)",
+  "name": "Fermentador Edge",
   "dockerFile": "Dockerfile",
   "customizations": {
     "vscode": {
@@ -20,10 +20,7 @@
     "--security-opt", "label=disable",
     "--group-add", "keep-groups",
     "--network", "host",
-    "--device", "/dev/ttyUSB0:/dev/ttyUSB0"
-  ],
-  "mounts": [
-    "source=/dev/bus/usb,target=/dev/bus/usb,type=bind"
+    "--volume", "/dev:/dev"
   ],
   "remoteUser": "vscode",
   "postCreateCommand": "pio --version"
