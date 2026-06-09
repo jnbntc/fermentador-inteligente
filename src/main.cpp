@@ -9,9 +9,19 @@
 #include <ArduinoOTA.h>
 
 // ================= CONFIGURACION DE RED =================
-const char* ssid = "Manija";
-const char* password = "pepapig777";
-const char* mqtt_server = "192.168.100.9"; // IP Actualizada (Nodo Aduana)
+
+// 1. Fallback defensivo por si falla la inyección de PlatformIO o falta el secrets.ini
+#ifndef WIFI_SSID
+  #pragma message "WARNING: WIFI_SSID no definido en build_flags. Usando fallback."
+  #define WIFI_SSID "SSID_POR_DEFECTO"
+  #define WIFI_PASS "PASS_POR_DEFECTO"
+  #define MQTT_SERVER "127.0.0.1"
+#endif
+
+// 2. Asignación limpia consumiendo las macros
+const char* ssid = WIFI_SSID;
+const char* password = WIFI_PASS;
+const char* mqtt_server = MQTT_SERVER;
 const int mqtt_port = 1883;
 
 // ================= HARDWARE Y PINES =====================
