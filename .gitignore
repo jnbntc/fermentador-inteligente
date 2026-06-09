@@ -1,0 +1,18 @@
+# PlatformIO
+.pio/
+*.bin
+*.elf
+*.map
+
+# Secretos y Entornos
+secrets.ini
+.env
+
+# VS Code / DevContainers caché
+.vscode/
+.devcontainer/.vscode/
+*.code-workspace
+
+# OS / MacOS / Linux
+.DS_Store
+*.sqlite

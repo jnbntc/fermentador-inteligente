@@ -1,0 +1,30 @@
+{
+  "name": "Fermentador Edge (ESP32 PIO)",
+  "dockerFile": "Dockerfile",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "platformio.useDevelopmentLink": false,
+        "C_Cpp.updateChannel": "Insiders"
+      },
+      "extensions": [
+        "platformio.platformio-ide",
+        "ms-vscode.cpptools",
+        "ms-vscode.cpptools-extension-pack"
+      ]
+    }
+  },
+  "runArgs": [
+    "--privileged",
+    "--security-opt", "label=disable",
+    "--group-add", "keep-groups",
+    "--network", "host",
+    "--device", "/dev/ttyUSB0:/dev/ttyUSB0"
+  ],
+  "mounts": [
+    "source=/dev/bus/usb,target=/dev/bus/usb,type=bind"
+  ],
+  "remoteUser": "vscode",
+  "postCreateCommand": "pio --version"
+}
