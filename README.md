@@ -40,11 +40,33 @@ The project uses PlatformIO with the following libraries:
 
 The build configuration is defined in `platformio.ini`.
 
+## Development environment
+
+This repository intentionally does not define its own Dev Container. Embedded development uses the shared `iot-dev` Distrobox workspace from `jnbntc/distrobox-stack`, which provides the canonical PlatformIO Core, Python, USB tooling and board toolchains.
+
+CLI workflow:
+
+```sh
+distrobox enter iot-dev
+cd ~/Proyectos/fermentador-edge
+pio run -e esp32doit-devkit-v1
+```
+
+VS Code workflow:
+
+1. Start `iot-dev` if necessary: `podman start iot-dev`.
+2. Run **Dev Containers: Attach to Running Container...**.
+3. Select `iot-dev`.
+4. Open this project folder from the shared home directory.
+5. Use the PlatformIO extension configured to use the existing PlatformIO Core inside `iot-dev`.
+
+The project itself keeps hardware, framework, libraries and build options in `platformio.ini`; editor/container configuration is intentionally kept outside this repository.
+
 ## Requirements
 
-- PlatformIO Core
-- Python 3
-- ESP32 toolchain configured by PlatformIO
+- the shared `iot-dev` workspace
+- the target ESP32 hardware
+- local `secrets.ini`
 
 ## Quick Setup
 
