@@ -4,13 +4,12 @@
 *.elf
 *.map
 
-# Secretos y Entornos
+# Secretos y entornos locales
 secrets.ini
 .env
 
-# VS Code / DevContainers caché
+# VS Code local
 .vscode/
-.devcontainer/.vscode/
 *.code-workspace
 
 # OS / MacOS / Linux
