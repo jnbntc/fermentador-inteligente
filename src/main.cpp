@@ -7,15 +7,13 @@
 #include <ESPmDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+#include <math.h>
+#include "cooling_guard.h"
 
 // ================= CONFIGURACION DE RED =================
 
-// 1. Fallback defensivo por si falla la inyección de PlatformIO o falta el secrets.ini
-#ifndef WIFI_SSID
-  #pragma message "WARNING: WIFI_SSID no definido en build_flags. Usando fallback."
-  #define WIFI_SSID "SSID_POR_DEFECTO"
-  #define WIFI_PASS "PASS_POR_DEFECTO"
-  #define MQTT_SERVER "127.0.0.1"
+#if !defined(WIFI_SSID) || !defined(WIFI_PASS) || !defined(MQTT_SERVER) || !defined(OTA_PASSWORD)
+  #error "Copiar secrets.ini.example a secrets.ini y completar la configuración local."
 #endif
 
 // 2. Asignación limpia consumiendo las macros
@@ -41,8 +39,10 @@ float setpoint = 18.0;     // Valor de seguridad inicial (Fail-safe)
 float histeresis = 0.3;    // Corta a 17.7°C, arranca a 18.3°C
 
 bool releEstado = false;   // false = Apagado, true = Encendido
-unsigned long lastRelayToggle = 0;
-const unsigned long MIN_OFF_TIME = 300000; // Anti-Short Cycle: 5 min (300,000 ms)
+const unsigned long MIN_OFF_TIME = 300000; // Protección de apagado: 5 minutos
+CoolingGuard coolingGuard(MIN_OFF_TIME);
+bool otaReady = false;
+bool otaInProgress = false;
 
 unsigned long lastMqttMsg = 0;
 unsigned long lastMqttReconnectAttempt = 0; // Para reconexión asíncrona
@@ -61,35 +61,39 @@ const uint8_t SEG_DEGREE = SEG_A | SEG_B | SEG_F | SEG_G;
 
 // ================= FUNCIONES ============================
 
+void setCoolingOff() {
+  coolingGuard.forceOff(millis());
+  digitalWrite(PIN_RELE_FRIO, HIGH);
+  releEstado = false;
+}
+
 void setup_wifi() {
-  delay(10);
-  Serial.printf("\nConectando a %s...\n", ssid);
+  Serial.printf("\nIniciando WiFi: %s...\n", ssid);
+  WiFi.setAutoReconnect(true);
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.printf("\nWiFi conectado. IP: %s\n", WiFi.localIP().toString().c_str());
 }
 
 void setupOTA() {
   ArduinoOTA.setHostname("esp32-fermentador");
-  ArduinoOTA.setPassword("FierroOTA2026");
+  ArduinoOTA.setPassword(OTA_PASSWORD);
 
   ArduinoOTA.onStart([]() {
+    otaInProgress = true;
+    setCoolingOff();
     String type = (ArduinoOTA.getCommand() == U_FLASH) ? "sketch" : "filesystem";
     Serial.println("Iniciando actualizacion OTA: " + type);
   });
-  
+
   ArduinoOTA.onEnd([]() {
     Serial.println("\nActualizacion finalizada exitosamente. Reiniciando...");
   });
-  
+
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
     Serial.printf("Progreso: %u%%\r", (progress / (total / 100)));
   });
-  
+
   ArduinoOTA.onError([](ota_error_t error) {
+    otaInProgress = false;
     Serial.printf("Error fatal [%u]: ", error);
     if (error == OTA_AUTH_ERROR) Serial.println("Fallo de Autenticacion");
     else if (error == OTA_BEGIN_ERROR) Serial.println("Fallo al Iniciar");
@@ -114,7 +118,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   // 2. Comprobar tópico y actualizar
   if (String(topic) == "birra/setpoint") {
     float nuevoSetpoint = messageTemp.toFloat();
-    
+
     // 3. Log de Diagnóstico (Vital)
     Serial.print("MQTT IN -> Payload Crudo: [");
     Serial.print(messageTemp);
@@ -122,7 +126,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println(nuevoSetpoint);
 
     // 4. Validación de Sanidad
-    if(nuevoSetpoint > 0.0 && nuevoSetpoint < 30.0) { 
+    if(nuevoSetpoint > 0.0 && nuevoSetpoint < 30.0) {
       setpoint = nuevoSetpoint;
       Serial.printf("SYS: Setpoint actualizado a %.2f C\n", setpoint);
     } else {
@@ -136,7 +140,7 @@ boolean reconnect() {
   Serial.print("Intentando conexión MQTT...");
   String clientId = "Fermentador-Edge-";
   clientId += String(random(0xffff), HEX);
-  
+
   // Asumiendo que definas ACLs en el futuro, acá pondrías usuario y password
   if (client.connect(clientId.c_str())) {
     Serial.println("Conectado al broker.");
@@ -153,56 +157,52 @@ void controlTermico() {
   unsigned long now = millis();
 
   // Fail-Safe: Falla el sensor sumergible
-  if (tempMosto == DEVICE_DISCONNECTED_C || tempMosto < -5.0) {
-    digitalWrite(PIN_RELE_FRIO, HIGH); // Forzar apagado
-    releEstado = false;
+  if (otaInProgress || !isfinite(tempMosto) || tempMosto == DEVICE_DISCONNECTED_C || tempMosto < -5.0) {
+    setCoolingOff();
     display.setSegments(SEG_ERR);
     return;
   }
 
   // --- Actualizar Display TM1637 ---
-  int tempInt = (int)(tempMosto * 10); 
+  int tempInt = (int)(tempMosto * 10);
   uint8_t data[] = { 0, 0, 0, 0 };
-  
+
   int digito1 = (tempInt / 100) % 10;
-  int digito2 = (tempInt / 10) % 10;  
-  int digito3 = tempInt % 10;         
+  int digito2 = (tempInt / 10) % 10;
+  int digito3 = tempInt % 10;
 
   if (tempInt >= 100) {
     data[0] = display.encodeDigit(digito1);
   } else {
     data[0] = 0x00;
   }
-  
-  data[1] = display.encodeDigit(digito2) | 0x80; 
+
+  data[1] = display.encodeDigit(digito2) | 0x80;
   data[2] = display.encodeDigit(digito3);
-  data[3] = SEG_DEGREE; 
+  data[3] = SEG_DEGREE;
 
   display.setSegments(data);
 
-  // --- Lazo Termostato ---
+  // El intervalo se mide siempre desde el apagado, incluso por sensor u OTA.
   if (tempMosto > (setpoint + histeresis)) {
-    if (!releEstado && (now - lastRelayToggle >= MIN_OFF_TIME || lastRelayToggle == 0)) {
+    if (!releEstado && coolingGuard.requestOn(now)) {
       digitalWrite(PIN_RELE_FRIO, LOW);
       releEstado = true;
-      lastRelayToggle = now;
       Serial.println("SYS: Compresor ON");
     }
-  } else if (tempMosto <= (setpoint - histeresis)) {
-    if (releEstado) {
-      digitalWrite(PIN_RELE_FRIO, HIGH);
-      releEstado = false;
-      lastRelayToggle = now;
-      Serial.println("SYS: Compresor OFF");
-    }
+  } else if (tempMosto <= (setpoint - histeresis) && releEstado) {
+    setCoolingOff();
+    Serial.println("SYS: Compresor OFF");
   }
+
 }
 
 void setup() {
   Serial.begin(115200);
-  
+
   pinMode(PIN_RELE_FRIO, OUTPUT);
-  digitalWrite(PIN_RELE_FRIO, HIGH); 
+  digitalWrite(PIN_RELE_FRIO, HIGH);
+  coolingGuard.reset(millis());
 
   display.setBrightness(0x0a);
   display.clear();
@@ -212,20 +212,24 @@ void setup() {
   sensors.setResolution(addrAmbiente, 11);
 
   setup_wifi();
-  
-  // Iniciar servicio OTA para quedar a la escucha
-  setupOTA();
-  
+
+  // OTA se inicia al obtener conexión, sin bloquear el arranque del control.
+
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
+  client.setSocketTimeout(1);
 }
 
 void loop() {
   // 1. Capa de Administración: Siempre viva
-  ArduinoOTA.handle(); 
+  if (WiFi.status() == WL_CONNECTED && !otaReady) {
+    setupOTA();
+    otaReady = true;
+  }
+  if (otaReady) ArduinoOTA.handle();
 
   // 2. Capa de Transporte: Manejo asíncrono de caídas de red
-  if (!client.connected()) {
+  if (WiFi.status() == WL_CONNECTED && !client.connected()) {
     unsigned long now = millis();
     if (now - lastMqttReconnectAttempt > 5000) {
       lastMqttReconnectAttempt = now;
@@ -234,27 +238,27 @@ void loop() {
         lastMqttReconnectAttempt = 0;
       }
     }
-  } else {
-    client.loop(); 
+  } else if (client.connected()) {
+    client.loop();
   }
 
   // 3. Capa de Negocio: Control de hardware independiente de la red
   unsigned long now = millis();
   if (now - lastMqttMsg > MQTT_INTERVAL) {
     lastMqttMsg = now;
-    
+
     sensors.requestTemperatures();
     tempMosto = sensors.getTempC(addrMosto);
     tempAmbiente = sensors.getTempC(addrAmbiente);
-    
+
     controlTermico();
 
     if (client.connected()) {
       char payload[150];
-      snprintf(payload, sizeof(payload), 
-               "{\"mosto\": %.2f, \"ambiente\": %.2f, \"rele\": %d, \"setpoint\": %.2f}", 
+      snprintf(payload, sizeof(payload),
+               "{\"mosto\": %.2f, \"ambiente\": %.2f, \"rele\": %d, \"setpoint\": %.2f}",
                tempMosto, tempAmbiente, releEstado ? 1 : 0, setpoint);
-               
+
       client.publish("birra/telemetria", payload);
       Serial.printf("MQTT OUT: %s\n", payload);
     }
