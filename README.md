@@ -48,7 +48,7 @@ Las direcciones de sensores deben corresponder al montaje real. La temperatura i
 
 ## Compilar y cargar
 
-El entorno utilizado es el espacio compartido `iot-dev` de [distrobox-stack](https://github.com/jnbntc/distrobox-stack), con PlatformIO. También puede usarse una instalación local compatible.
+El entorno utilizado es el espacio compartido `iot-dev` de [distrobox-stack](https://github.com/jnbntc/distrobox-stack), con PlatformIO. También puede usarse una instalación local compatible. La plataforma ESP32 está fijada en la versión 7.0.0, utilizada para verificar la compilación de esta propuesta.
 
 ~~~sh
 cp secrets.ini.example secrets.ini
@@ -110,7 +110,7 @@ g++ -std=c++11 -Wall -Wextra -Werror -Iinclude test/cooling_guard_test.cpp -o /t
 /tmp/cooling-guard-test
 ~~~
 
-Las pruebas no sustituyen la compilación completa del firmware ni la verificación de sensores, relé, compresor y cortes de energía. La integración continua está preparada, pero todavía no está activada en GitHub.
+La compilación completa del firmware y las pruebas de la biblioteca de densidad y protección del compresor fueron verificadas sin la placa, con valores de configuración de demostración. Queda pendiente la verificación física de sensores, relé, compresor y cortes de energía. La integración continua está preparada, pero todavía no está activada en GitHub.
 
 ## Próximos pasos
 
