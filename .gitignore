@@ -15,3 +15,9 @@ secrets.ini
 # OS / MacOS / Linux
 .DS_Store
 *.sqlite
+
+# Desarrollo Python y catálogo local
+__pycache__/
+*.pyc
+*.sqlite-wal
+*.sqlite-shm
