@@ -77,6 +77,17 @@ Para probar MQTT usar `esp32-mqtt-test` y un broker controlado. Publicar manualm
 7. Volver a solicitar: COMPRESSOR_LOCKOUT y contacto OFF durante cinco minutos desde ese apagado. Repetir con falla/reconexión de MOSTO, mantenimiento y reinicio.
 8. Probar `SP 30`/`SP 18basura` y pérdida de red: no cambian indebidamente salida o consigna. Revisar `control_max_gap_ms` y ausencia de internal_error durante cambios NVS y reintentos MQTT.
 
+### Ensayo manual sin heladera
+
+Mantener HARDWARE, compresor desconectado, ambos canales sin cargas externas y AMBIENTE a temperatura de la habitación. Este ensayo comprueba sensor/control/relé; no caracteriza la refrigeración de un volumen real. No habilitar SIM en HARDWARE ni reducir los 300 s para acelerar la prueba.
+
+1. Con SP aplicado 18 y HYST 0,3, enviar MAINT OFF y STATUS. Esperar COOLING, relay=1 e indicador/clic; si sigue COMPRESSOR_LOCKOUT, esperar el tiempo indicado.
+2. Enfriar únicamente el extremo de MOSTO con agua fría si la sonda está confirmada como estanca, o apoyándolo contra una bolsa cerrada con hielo. Mantener placa, módulo, cables y conexiones secos. No cambiar SP durante esta prueba.
+3. Al registrar una lectura válida T<=17,7, esperar IDLE, request=active=relay=0 y apertura del contacto. Capturar STATUS y los eventos; el valor de una lectura aislada de diagnóstico no sustituye al dato usado por el controlador.
+4. Retirar la sonda del frío y calentar su extremo con la mano. Al superar 18,3 antes de cumplir cinco minutos desde el corte, esperar COMPRESSOR_LOCKOUT, request=1, relay=0. Capturar STATUS.
+5. Mantener T>18,3 hasta finalizar el intervalo: esperar COOLING y relay=1 únicamente después de 300 s desde el apagado. Capturar STATUS y eventos. Si la demanda reapareció después de 300 s, no hubo oportunidad de observar un bloqueo con demanda; registrarlo como límite del ensayo.
+6. Finalizar con MAINT ON y STATUS. Registrar resultados; el ensayo no se considera ejecutado hasta obtener evidencia del usuario. Pérdida de MOSTO y pérdida/restauración de red son pruebas distintas todavía pendientes.
+
 ## FASE D — refrigeración real
 
 Solo después de aprobar A–C, interfaz/polarización OFF, características eléctricas del relé y montaje adecuado para el compresor. Conectar el equipo de refrigeración mediante la instalación correspondiente; esta guía no define cableado de tensión de red.
@@ -91,17 +102,17 @@ Solo después de aprobar A–C, interfaz/polarización OFF, características el�
 
 ## Registro de aceptación
 
-| Criterio | Estado inicial | Evidencia a registrar |
+| Criterio | Estado observado al 2026-10-07 | Evidencia / límites |
 |---|---|---|
 | Compila DRY_RUN / HARDWARE | Aprobado en software, 2026-10-06 | VALIDATION_RESULTS.md |
 | Unit tests y JSON | Aprobado en host, 2026-10-06 | VALIDATION_RESULTS.md |
-| Relé físicamente OFF en boot/reset/carga | Pendiente | Medición GPIO/contacto |
-| Ningún inicio antes de 300 s | Pendiente | Uptime y contacto real |
-| Falla MOSTO fuerza OFF | Pendiente | Desconexión, evento y contacto |
-| AMBIENTE perdido permite control degradado | Pendiente | Serial y temperatura MOSTO |
-| MQTT/Wi-Fi offline no detienen control | Pendiente | Ciclos/temperatura/salida sin red |
-| Consigna inválida conserva aplicada | Pendiente | Payload y STATUS |
-| Telemetría explica decisiones | Pendiente | JSON real y logs |
+| Relé físicamente OFF en boot/reset/carga | Reposo y reset/reconexión observados con multímetro; reset mientras COOLING en HARDWARE confirmado por IN1 apagado y BOOT_HOLD | PHYSICAL_VALIDATION.md; pulsos breves no caracterizados y polarización externa pendiente de confirmar |
+| Ningún inicio antes de 300 s | Observado en HARDWARE | OFF a uptime 299, activación posterior y STATUS COOLING a 306 |
+| Falla MOSTO fuerza OFF | Desactivación HARDWARE observada al perder el bus de ambas sondas; recuperación posterior | Latencia exacta y recuperación antes de terminar el guard no caracterizadas |
+| AMBIENTE perdido permite control degradado | Observado en DRY_RUN | Separación limpia de AMBIENTE durante ejecución HARDWARE pendiente |
+| MQTT/Wi-Fi offline no detienen control | Pérdida/restauración de ambos transportes observada en HARDWARE con IN1 encendido | MQTT: STATUS 429/468/504, gap máximo 26 ms. Wi-Fi: STATUS 681/836/890, gap máximo 52 ms (<250 ms), ciclos avanzan y SP=18 conservado |
+| Consigna inválida conserva aplicada | Serial observado en DRY_RUN; consignas remotas deshabilitadas en HARDWARE | Payloads MQTT inválidos en dispositivo con recepción habilitada pendientes |
+| Telemetría explica decisiones | JSON real recibido en el broker y coherente con Serial | evidence/mqtt-maintenance-2026-10-07.json; corrupción UART intermitente pendiente |
 | Procedimiento reproducible | Esta guía | Resultado de A–D |
 
 Actualizar con fecha, commit, resultado observado y archivo de evidencia. Un resultado simulado se marca como tal. Hasta completar los criterios físicos: **baseline implementada, etapa no aceptada**.

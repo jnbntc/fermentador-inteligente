@@ -31,7 +31,9 @@ El ESP32 decide el encendido y apagado. La tarea de control no llama a Wi-Fi, MQ
 - Telemetría explicativa y logs por eventos. Persistencia de consigna/histéresis válidas en NVS, separada entre DRY_RUN y HARDWARE.
 - Watchdog de tarea de control; un plazo de control perdido fuerza OFF y deja un error interno hasta reiniciar.
 
-Estas funciones están implementadas y probadas en software. **La aceptación física sigue pendiente**, registrada en [HARDWARE_VALIDATION.md](docs/HARDWARE_VALIDATION.md). El nivel OFF durante reset/alimentación depende también del montaje: comprobar polarización externa y compatibilidad del módulo antes de conectar un compresor.
+Estas funciones están implementadas y probadas en software. El 7 de octubre de 2026 se realizaron pruebas de banco con sondas y relé sin compresor: corte por temperatura, bloqueo entre ciclos, pérdida/recuperación de sensores, mantenimiento, reinicio con cinco minutos OFF y pérdida/restauración de Wi-Fi y MQTT conservando el control local. Ver [resultados](docs/VALIDATION_RESULTS.md), [evidencia física](docs/PHYSICAL_VALIDATION.md) y [telemetría recibida](docs/evidence/mqtt-maintenance-2026-10-07.json).
+
+**La aceptación completa sigue pendiente:** no se ensayó refrigeración real. El nivel OFF antes de ejecutar el firmware depende también del montaje; falta confirmar polarización externa y caracterizar transitorios breves antes de conectar un compresor. También permanece pendiente el diagnóstico de corrupción Serial intermitente observada en las capturas. Los límites y las fases restantes están en [HARDWARE_VALIDATION.md](docs/HARDWARE_VALIDATION.md).
 
 ## No implementado todavía
 
