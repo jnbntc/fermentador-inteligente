@@ -23,6 +23,12 @@ public:
 
     bool enabled() const { return enabled_; }
 
+    uint32_t remainingMs(uint32_t now) const {
+        if (enabled_) return 0;
+        const uint32_t elapsed = uint32_t(now - lastOff_);
+        return elapsed >= minOffMs_ ? 0 : minOffMs_ - elapsed;
+    }
+
 private:
     uint32_t minOffMs_;
     uint32_t lastOff_ = 0;
