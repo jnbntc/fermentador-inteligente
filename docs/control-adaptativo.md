@@ -1,6 +1,6 @@
 # Diseño del seguimiento adaptativo
 
-El catálogo y los cálculos básicos tienen una biblioteca inicial. Pantallas, integración con Node-RED y ML están pendientes.
+El catálogo versionado, lotes, densidades manuales y etapas supervisadas están integrados con Node-RED: ver [gestor de perfiles](../server/profiles/README.md). Las consignas remotas siguen bloqueadas. El control adaptativo, ML y el envío automático de perfiles siguen pendientes. Este documento describe también capacidades futuras; no todas se atribuyen al despliegue actual.
 
 ## Datos del proceso
 

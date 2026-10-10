@@ -1,0 +1,33 @@
+# Ejecutar con PROFILES_IMAGE fijado a un digest o ID de imagen Python verificado.
+# Se reutiliza el runtime Python local; no se instala nada en Node-RED.
+services:
+  perfiles:
+    image: ${PROFILES_IMAGE:?Definir una imagen Python verificada}
+    container_name: birra_perfiles
+    restart: unless-stopped
+    user: "1000:1000"
+    working_dir: /app
+    entrypoint: ["python", "-m", "server.profiles.app"]
+    command: ["--database", "/data/profiles.sqlite"]
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - ./app:/app:ro
+      - ./data:/data
+    networks: [iot]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8787/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    stop_grace_period: 10s
+networks:
+  iot:
+    external: true
+    name: ${PROFILES_NETWORK:?Definir red interna compartida con Node-RED}

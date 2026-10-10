@@ -84,6 +84,9 @@ def validate_recipe(recipe):
     stages = recipe.get("stages")
     if not isinstance(stages, list) or not stages:
         raise ValueError("La receta necesita etapas.")
+    if recipe.get("schema") == "staged-v1":
+        from server.profiles.store import validate_staged_recipe
+        return validate_staged_recipe(recipe)
     previous = -1
     for stage in stages:
         if not isinstance(stage, dict):
