@@ -1,0 +1,8 @@
+from(bucket: "telemetria_birra")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r._measurement == "estado_orquestador")
+  |> filter(fn: (r) => int(v: v.timeRangeStop) - int(v: r._time) <= 900000000000)
+  |> filter(fn: (r) => r._field == "setpoint" or r._field == "transcurridos" or r._field == "restantes" or r._field == "total")
+  |> group(columns: ["_field"])
+  |> last()
+  |> map(fn: (r) => ({r with _field: if r._field == "setpoint" then "Consigna calculada" else if r._field == "transcurridos" then "Días transcurridos" else if r._field == "restantes" then "Días restantes" else "Días del perfil"}))
