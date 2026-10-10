@@ -80,6 +80,8 @@ El parche generado conserva el hash de su base original: **no volver a aplicarlo
 
 ## Siguientes entregas
 
-Autenticación del editor, actualización compatible de Node-RED/Node.js en un entorno de prueba, catálogo versionado de recetas y lotes, captura manual de densidad, identificación de datos de banco y lotes reales, confirmación de consignas, políticas de alarma y respaldo/restauración. Grafana se ajustará al contrato de telemetría después de verificar su almacenamiento. La biblioteca de recetas Python existente aún no está conectada a Node-RED. Ver [registro de despliegue](../../docs/SERVER_DEPLOYMENT.md) y [Grafana](../grafana/README.md).
+El [gestor de perfiles](../profiles/README.md) ya integra catálogo versionado, lotes, densidad manual, clasificación banco/real del lote, historial y etapas supervisadas. Su despliegue agrega 21 nodos y solo amplía la salida de telemetría validada del flujo anterior. Ver [registro de perfiles](../../docs/PROFILES_DEPLOYMENT.md). El Inject anterior continúa bloqueado; el nuevo inicio registra un lote en SQLite sin enviar comandos al equipo.
+
+Quedan pendientes autenticación del editor/aplicación, actualización compatible de Node-RED/Node.js, identificación de lotes en las series térmicas históricas, confirmación de consignas remotas, políticas de alarma y restauración completa. Grafana ya se ajustó al contrato almacenado: ver [primer despliegue](../../docs/SERVER_DEPLOYMENT.md) y [Grafana](../grafana/README.md).
 
 Referencias: [contexto y stores de Node-RED](https://nodered.org/docs/user-guide/context), [Function Nodes, errores y múltiples salidas](https://nodered.org/docs/user-guide/writing-functions), [formato de escritura del complemento InfluxDB](https://github.com/mblackstock/node-red-contrib-influxdb), [seguridad del editor](https://nodered.org/docs/user-guide/runtime/securing-node-red).

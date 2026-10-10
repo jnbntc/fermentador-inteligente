@@ -61,3 +61,5 @@ Las consultas de verificación fueron de lectura. Las pruebas aisladas usan cont
 - Para restaurar se necesita el respaldo privado y su configuración de recuperación; detener solamente el servicio afectado y conservar antes cualquier cambio posterior. No restaurar SQLite mientras Grafana escribe.
 
 Quedan pendientes la refrigeración real, identificación de lotes/datos de banco en el almacenamiento, densidad manual y atenuación integradas, políticas operativas de alarma y actualización segura de versiones. La biblioteca de recetas Python aún no está conectada a Node-RED. No se implementó aprendizaje automático.
+
+**Entrega posterior del mismo día:** el [gestor supervisado de perfiles](PROFILES_DEPLOYMENT.md) integra recetas, lotes, densidad y atenuación mediante SQLite y una página nueva de Node-RED. El párrafo anterior describe el alcance del primer despliegue. La refrigeración real y ML siguen pendientes; las series térmicas históricas no fueron reasignadas a lotes.

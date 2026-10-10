@@ -37,7 +37,7 @@ Estas funciones están implementadas y probadas en software. El 7 de octubre de 
 
 ## No implementado todavía
 
-Control adaptativo, machine learning, predicciones, decisiones automáticas de fermentación, calefacción, detección de diacetilo y automatización de perfiles completos. La biblioteca anterior de recetas/densidad permanece sin conectarse al controlador. El [diseño adaptativo](docs/control-adaptativo.md) es una referencia futura, fuera de esta etapa.
+Control adaptativo, machine learning, predicciones, decisiones automáticas de fermentación, calefacción, detección de diacetilo y envío automático de perfiles al controlador. El gestor de recetas/densidad ya está integrado con Node-RED en modo supervisado, sin publicar consignas. Ver el [diseño adaptativo y sus límites](docs/control-adaptativo.md).
 
 ## Hardware y conexión
 
@@ -135,8 +135,16 @@ Ver [arquitectura y transiciones](docs/BASELINE_DESIGN.md) y [pruebas físicas](
 
 ## Supervisión: Node-RED y Grafana
 
-La [mejora de Node-RED](server/nodered/README.md) valida la telemetría, corrige la lectura y escritura del progreso persistente, distingue consigna calculada/aplicada y detecta ausencia de mensajes desde el arranque. Fue desplegada y verificada con 48 nodos activos; sus funciones también pasan 20 pruebas aisladas en Node.js 16 y 24. La publicación de consignas MQTT, Telegram y el inicio de lote permanecen bloqueados en esta etapa.
+La [mejora de Node-RED](server/nodered/README.md) valida la telemetría, corrige la lectura y escritura del progreso persistente, distingue consigna calculada/aplicada y detecta ausencia de mensajes desde el arranque. El primer despliegue tuvo 48 nodos; con el gestor de perfiles son 69. Las funciones de supervisión pasan 20 pruebas aisladas en Node.js 16 y 24. La publicación de consignas MQTT, Telegram y el Inject antiguo de inicio permanecen bloqueados.
 
 El [dashboard de Grafana](server/grafana/README.md) muestra temperaturas, consigna aplicada, desvío, estado del controlador, vigencia, sensores y diagnóstico. El perfil de prueba se presenta por separado. Corrige el aprovisionamiento incompatible y el cálculo de progreso desde la primera medición histórica. El archivo JSON y las consultas Flux son reproducibles y no contienen credenciales.
 
 Se verificaron la integración real MQTT → Node-RED → InfluxDB → Grafana, 30 consultas de lectura y los paneles en navegador. Los datos corresponden a un ensayo de banco sin compresor; **FASE D pendiente**. Ver [respaldo, despliegue y límites de validación](docs/SERVER_DEPLOYMENT.md).
+
+## Recetas y lotes supervisados
+
+La página **Recetas y lotes** del Dashboard de Node-RED (`/dashboard/perfiles`) permite guardar versiones de recetas, iniciar un lote con OG y temperatura inicial, registrar densidades corregidas y consultar su historial. Las etapas admiten rampas, pausas y criterios de tiempo, atenuación o estabilidad, siempre con confirmación manual. El ingreso a enfriado requiere estabilidad y comprobación manual de diacetilo aprobada.
+
+SQLite conserva recetas, copias por lote, mediciones y decisiones en transacciones. La propuesta térmica se muestra separada de la consigna aplicada del ESP32; no se envía al equipo. Pausar el perfil tampoco apaga el relé. El catálogo se entrega sin recetas cerveceras inventadas: la única receta de validación quedó archivada y su lote cancelado, ambos identificados como prueba.
+
+Ver [uso, arquitectura, pruebas y recuperación](server/profiles/README.md) y [registro del despliegue](docs/PROFILES_DEPLOYMENT.md).
