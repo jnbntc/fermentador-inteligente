@@ -1,0 +1,28 @@
+name: Supervisión del fermentador
+on:
+  push:
+    paths: ['server/**', '.github/workflows/server.yml']
+  pull_request:
+    paths: ['server/**', '.github/workflows/server.yml']
+permissions:
+  contents: read
+jobs:
+  nodered:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['16', '24']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: node server/nodered/test_functions.cjs server/nodered/reference/base.sanitized.json server/nodered/reference/patch.json server/nodered/reference/flows.review.disabled.json
+  grafana:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s server/grafana -p 'test_*.py' -v

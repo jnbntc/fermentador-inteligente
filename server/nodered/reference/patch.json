@@ -1,0 +1,382 @@
+{
+  "base_disk_sha256": "b28c7fd88613e41f1bd4567cfa3992a0e7cd1d2e27c96b5c6f81858f653b11d6",
+  "scope": "Node-RED Birra; Clima y configuraciones compartidas intactos",
+  "updates": {
+    "6a09c3f845bb0be5": {
+      "label": "Fermentador · telemetría y supervisión"
+    },
+    "dda619d5884cecdf": {
+      "name": "01 · Telemetría validada y persistencia",
+      "x": 44,
+      "y": 39,
+      "w": 1322,
+      "h": 242,
+      "nodes": [
+        "05ef2ed6ad6fdc38",
+        "fbf131f18cb09f3d",
+        "44c07f25b44c64fe",
+        "5915461a27741a55",
+        "nr10_validar",
+        "nr10_sp_aplicado"
+      ]
+    },
+    "4b2ac603bb7bd26b": {
+      "name": "02 · Alertas térmicas existentes",
+      "x": 44,
+      "y": 339,
+      "w": 1322,
+      "h": 282
+    },
+    "93751e838cbcf62b": {
+      "name": "03 · Perfil de prueba · publicación bloqueada",
+      "x": 44,
+      "y": 679,
+      "w": 1322,
+      "h": 282
+    },
+    "05ef2ed6ad6fdc38": {
+      "x": 200,
+      "y": 100,
+      "wires": [
+        [
+          "nr10_validar"
+        ]
+      ]
+    },
+    "5915461a27741a55": {
+      "name": "DEBUG: telemetría validada",
+      "active": false,
+      "x": 580,
+      "y": 220
+    },
+    "fbf131f18cb09f3d": {
+      "name": "FORMAT: campos válidos para InfluxDB",
+      "func": "// Solo recibe mensajes de validar-telemetria. No escribe null ni objetos en Influx.\nconst source = msg.payload;\nif (!source || typeof source !== \"object\" || Array.isArray(source)) return null;\nconst fields = {};\nconst numbers = [\"mosto\", \"ambiente\", \"setpoint\", \"setpoint_desired\", \"setpoint_applied\", \"hysteresis\", \"rele\",\n    \"lockout_remaining_s\", \"uptime_s\", \"message_seq\", \"control_cycles\", \"setpoint_rejections\", \"control_max_gap_ms\",\n    \"wifi_losses\", \"mqtt_losses\", \"dropped_logs\", \"dropped_commands\"];\nfor (const key of numbers) {\n    if ((key === \"mosto\" || key === \"ambiente\") && source[key + \"_valid\"] !== true) continue;\n    if (typeof source[key] === \"number\" && Number.isFinite(source[key])) fields[key] = source[key];\n}\nfor (const key of [\"mosto_valid\", \"ambiente_valid\", \"relay\", \"wifi\", \"mqtt\", \"degraded\", \"dry_run\", \"cooling_request\", \"cooling_active\"]) {\n    if (typeof source[key] === \"boolean\") fields[key] = source[key];\n}\nfor (const key of [\"controller_state\", \"mosto_fault\", \"ambiente_fault\", \"fault\"]) {\n    if (typeof source[key] === \"string\") fields[key] = source[key];\n}\nconst state = flow.get(\"estado_lote\", \"file\");\nif (state && typeof state === \"object\") {\n    for (const [field, key] of [[\"dias_trans\", \"transcurridos\"], [\"dias_rest\", \"restantes\"]]) {\n        if (typeof state[key] === \"number\" && Number.isFinite(state[key]) && state[key] >= 0) fields[field] = state[key];\n    }\n} // Sin lote calculado no inventa progreso cero.\nmsg.payload = fields;\nreturn msg;\n",
+      "x": 880,
+      "y": 100
+    },
+    "44c07f25b44c64fe": {
+      "x": 1180,
+      "y": 100
+    },
+    "5a0582668ed9c9ae": {
+      "func": "const p = msg.payload;\nif (!p || p.mosto_valid !== true || !Number.isFinite(p.mosto) || !Number.isFinite(p.setpoint_applied)) return null;\nconst configured = env.get(\"THERMAL_ALERT_DELTA_C\");\nconst threshold = configured === undefined || configured === \"\" ? 20 : Number(configured);\nif (!Number.isFinite(threshold) || threshold <= 0 || threshold > 30) {\n    node.error(\"THERMAL_ALERT_DELTA_C debe ser mayor que 0 y no mayor que 30\", {topic: \"alarma-termica\"});\n    return null;\n}\nconst delta = Math.abs(p.mosto - p.setpoint_applied);\nif (delta < threshold) return null;\nreturn {payload: \"Desvío térmico: MOSTO \" + p.mosto + \" °C; consigna aplicada \" + p.setpoint_applied + \" °C; diferencia \" + delta.toFixed(2) + \" °C. Revisar el sistema.\"};\n",
+      "name": "CHECK: desvío de consigna aplicada",
+      "x": 250,
+      "y": 400
+    },
+    "48f695cfed13afd8": {
+      "x": 610,
+      "y": 400
+    },
+    "45246b272efb8409": {
+      "x": 940,
+      "y": 400
+    },
+    "416924024672d3bd": {
+      "d": true,
+      "name": "OUT: Telegram · bloqueado para pruebas",
+      "x": 1180,
+      "y": 480
+    },
+    "2851528834bc5f7c": {
+      "d": true,
+      "name": "LEGACY: timeout por mensaje · deshabilitado",
+      "x": 300,
+      "y": 540
+    },
+    "b1999152cc022d09": {
+      "x": 660,
+      "y": 540
+    },
+    "23a7bec7054cc411": {
+      "x": 1030,
+      "y": 540
+    },
+    "48dcb958f555ae77": {
+      "name": "CALC: perfil interpolado · sin PID",
+      "func": "// Interpolación del perfil existente; no es PID. La salida MQTT se bloquea en el parche.\nconst receta = flow.get(\"receta_activa\", \"file\");\nconst inicio = flow.get(\"inicio_fermentacion\", \"file\");\nif (receta === undefined || inicio === undefined || inicio === null) {\n    flow.set(\"estado_lote\", undefined, \"file\");\n    node.status({fill: \"grey\", shape: \"ring\", text: \"Sin lote iniciado\"});\n    return null;\n}\nconst now = Date.now();\nconst finite = x => typeof x === \"number\" && Number.isFinite(x);\nlet previous = -1;\nlet valid = Array.isArray(receta) && receta.length > 0 && finite(inicio) && inicio > 0 && inicio <= now;\nif (valid) {\n    for (const point of receta) {\n        if (!point || !finite(point.dia) || !finite(point.temp) || point.dia < 0 || point.dia <= previous || point.temp <= 0 || point.temp >= 30) {\n            valid = false;\n            break;\n        }\n        previous = point.dia;\n    }\n    valid = valid && receta[0].dia === 0;\n}\nif (!valid) {\n    flow.set(\"estado_lote\", undefined, \"file\");\n    node.error(\"Perfil o fecha de inicio inválidos; no se calcula consigna\", {topic: \"perfil\"});\n    node.status({fill: \"red\", shape: \"ring\", text: \"Perfil inválido\"});\n    return null;\n}\nconst days = (now - inicio) / 86400000;\nconst total = receta[receta.length - 1].dia;\nlet target = receta[receta.length - 1].temp;\nfor (let i = 0; i < receta.length - 1; i++) {\n    const a = receta[i], b = receta[i + 1];\n    if (days >= a.dia && days < b.dia) {\n        target = a.temp + (b.temp - a.temp) * (days - a.dia) / (b.dia - a.dia);\n        break;\n    }\n}\ntarget = Math.round(target * 100) / 100;\nif (!(target > 0 && target < 30)) {\n    flow.set(\"estado_lote\", undefined, \"file\");\n    node.error(\"Consigna redondeada fuera del rango del ESP32\", {topic: \"perfil\"});\n    return null;\n}\nconst state = {setpoint: target, transcurridos: Number(days.toFixed(2)),\n    restantes: Number(Math.max(0, total - days).toFixed(2)), total, updated_at_ms: now};\n// Guardar antes de cualquier retorno, aunque la consigna cambie en este tick.\nflow.set(\"estado_lote\", state, \"file\");\nflow.set(\"dias_transcurridos\", state.transcurridos, \"file\");\nflow.set(\"dias_restantes\", state.restantes, \"file\");\nconst last = flow.get(\"ultimo_setpoint\", \"file\");\nnode.status({fill: \"blue\", shape: \"dot\", text: \"Perfil calculado: \" + target + \" °C; salida remota bloqueada\"});\n// No actualiza ultimo_setpoint: calcular o intentar publicar no demuestra aplicación.\nconst changed = !finite(last) || Math.abs(target - last) >= 0.05;\nreturn [changed ? {payload: String(target)} : null, {payload: state}];\n",
+      "x": 830,
+      "y": 780
+    },
+    "183d81f953a891ba": {
+      "name": "TICK: cálculo de perfil de prueba",
+      "once": true,
+      "onceDelay": 1,
+      "x": 520,
+      "y": 720
+    },
+    "ea2429329788f701": {
+      "d": true,
+      "name": "OUT: consigna MQTT · bloqueada",
+      "x": 1180,
+      "y": 740
+    },
+    "cd4ca9e64daadf17": {
+      "name": "STATE: iniciar lote una sola vez",
+      "func": "const existing = flow.get(\"inicio_fermentacion\", \"file\");\nif (existing !== undefined && existing !== null) {\n    node.error(\"Ya existe un lote iniciado; no se reemplaza su fecha\", {topic: \"lote\"});\n    return null;\n}\nconst now = Date.now();\nflow.set(\"inicio_fermentacion\", now, \"file\");\nflow.set(\"ultimo_setpoint\", null, \"file\");\nflow.set(\"estado_lote\", undefined, \"file\");\nmsg.payload = \"Lote iniciado: \" + new Date(now).toISOString();\nreturn msg;\n",
+      "x": 540,
+      "y": 840
+    },
+    "91228d4897e037d4": {
+      "d": true,
+      "name": "INJECT: iniciar lote · bloqueado",
+      "x": 240,
+      "y": 720
+    },
+    "b6844984558a8c68": {
+      "name": "CONF: receta de prueba · no es receta real",
+      "func": "// No reemplazar receta ni fecha de un lote ya iniciado.\nconst inicioExistente = flow.get(\"inicio_fermentacion\", \"file\");\nif (inicioExistente !== undefined && inicioExistente !== null) {\n    node.error(\"Ya existe un lote iniciado; no se reemplaza la receta\", {topic: \"lote\"});\n    return null;\n}\n// ==========================================\n// CONFIGURACIÓN DE LA RECETA ACTUAL\n// ==========================================\n// Podés duplicar este nodo para diferentes cervezas\n// y conectar el que quieras usar al botón de \"Iniciar\".\n\nconst recetaActual = {\n    nombre: \"Ale Americana (US-05)\",\n    perfil: [\n        { dia: 0, temp: 3.0 },  // Inoculación\n        { dia: 1, temp: 3.0 },  // Fin Fase Log\n        { dia: 2, temp: 3.0 },  // Pico Diacetilo\n        { dia: 6, temp: 3.0 },  // Fin Diacetilo\n        { dia: 7, temp: 3.0 },   // Cold Crash\n        { dia: 10, temp: 3.0 }   // Fin Acondicionamiento\n    ]\n};\n\n// Guardamos la receta en el disco del contenedor (\"file\")\nflow.set(\"receta_activa\", recetaActual.perfil, \"file\");\nflow.set(\"nombre_receta\", recetaActual.nombre, \"file\");\n\n// Pasamos el mensaje al siguiente nodo (Setear Fecha Cero)\nmsg.payload = \"Cargando receta: \" + recetaActual.nombre;\nreturn msg;",
+      "x": 240,
+      "y": 840
+    },
+    "a54f710e658163de": {
+      "name": "DEBUG: inicio de lote",
+      "x": 800,
+      "y": 900
+    },
+    "1c1a749e7a746326": {
+      "label": "Consigna calculada del perfil (°C)",
+      "name": "UI: consigna calculada",
+      "x": 1180,
+      "y": 820
+    },
+    "fd03135617c9bfa8": {
+      "x": 1180,
+      "y": 900
+    }
+  },
+  "additions": [
+    {
+      "id": "nr10_validar",
+      "type": "function",
+      "z": "6a09c3f845bb0be5",
+      "g": "dda619d5884cecdf",
+      "name": "VALIDAR: contrato y calidad",
+      "func": "// Cuerpo de Function Node. No publica MQTT ni controla el relé.\nfunction reject(reason) {\n    node.error(\"Telemetría rechazada: \" + reason, {topic: msg.topic});\n    return null;\n}\nlet p = msg.payload;\nif (msg.retain === true) return reject(\"mensaje retenido sin fecha verificable\");\nif (Buffer.isBuffer(p)) p = p.toString(\"utf8\");\nif (typeof p === \"string\") {\n    try { p = JSON.parse(p); } catch (_) { return reject(\"JSON inválido\"); }\n}\nif (!p || typeof p !== \"object\" || Array.isArray(p)) return reject(\"se esperaba un objeto\");\np = Object.assign({}, p);\nconst finite = v => typeof v === \"number\" && Number.isFinite(v);\nconst applied = p.setpoint_applied === undefined ? p.setpoint : p.setpoint_applied;\nif (!finite(applied) || applied <= 0 || applied >= 30) return reject(\"consigna aplicada inválida\");\nconst relay = p.relay === undefined ? p.rele === 1 ? true : p.rele === 0 ? false : undefined : p.relay;\nif (typeof relay !== \"boolean\") return reject(\"estado del relé inválido\");\nfor (const role of [\"mosto\", \"ambiente\"]) {\n    const flag = role + \"_valid\";\n    if (p[flag] !== undefined && typeof p[flag] !== \"boolean\") return reject(\"validez de sensor mal formada\");\n    const min = role === \"mosto\" ? -5 : -20;\n    const max = role === \"mosto\" ? 40 : 60;\n    const plausible = finite(p[role]) && p[role] >= min && p[role] <= max;\n    // Compatibilidad con mensajes antiguos sin flags. Nunca convierte null a cero.\n    p[flag] = plausible && p[flag] !== false;\n    if (!p[flag]) p[role] = null;\n}\nfor (const key of [\"wifi\", \"mqtt\", \"dry_run\", \"degraded\", \"cooling_request\", \"cooling_active\"]) {\n    if (p[key] !== undefined && typeof p[key] !== \"boolean\") return reject(\"campo booleano mal formado: \" + key);\n}\nif (p.setpoint_desired !== undefined && !finite(p.setpoint_desired)) return reject(\"consigna deseada no finita\");\nif (p.hysteresis !== undefined && (!finite(p.hysteresis) || p.hysteresis <= 0)) return reject(\"histéresis inválida\");\np.setpoint_applied = applied;\np.setpoint = applied;\np.relay = relay;\np.rele = relay ? 1 : 0; // Mantiene el alias numérico usado por el firmware y Grafana.\nmsg.payload = p;\nflow.set(\"telemetria_recibida_ms\", Date.now()); // Memoria: una recepción anterior al reinicio no prueba presencia actual.\nnode.status({fill: p.mosto_valid ? \"green\" : \"yellow\", shape: \"dot\", text: p.mosto_valid ? \"Telemetría válida\" : \"MOSTO inválido; evento conservado\"});\nreturn msg;\n",
+      "outputs": 1,
+      "noerr": 0,
+      "initialize": "",
+      "finalize": "",
+      "libs": [],
+      "timeout": 0,
+      "x": 530,
+      "y": 100,
+      "wires": [
+        [
+          "5915461a27741a55",
+          "fbf131f18cb09f3d",
+          "5a0582668ed9c9ae",
+          "nr10_sp_aplicado"
+        ]
+      ]
+    },
+    {
+      "id": "nr10_sp_aplicado",
+      "type": "ui-text",
+      "z": "6a09c3f845bb0be5",
+      "g": "dda619d5884cecdf",
+      "group": "7460cc86e83ad374",
+      "order": 3,
+      "width": "6",
+      "height": "1",
+      "name": "UI: consigna aplicada por ESP32",
+      "label": "Consigna aplicada ESP32 (°C)",
+      "format": "{{msg.payload}}",
+      "layout": "row-spread",
+      "style": false,
+      "font": "",
+      "fontSize": 16,
+      "color": "#717171",
+      "wrapText": false,
+      "className": "",
+      "value": "payload.setpoint_applied",
+      "valueType": "msg",
+      "x": 1160,
+      "y": 220,
+      "wires": []
+    },
+    {
+      "id": "nr10_diagnostico",
+      "type": "group",
+      "z": "6a09c3f845bb0be5",
+      "name": "04 · Diagnóstico local · sin avisos externos",
+      "style": {
+        "fill": "#e2e3ef",
+        "label": true,
+        "color": "#000000"
+      },
+      "nodes": [
+        "nr10_tick",
+        "nr10_vigencia",
+        "nr10_eventos",
+        "nr10_catch",
+        "nr10_errores",
+        "nr10_status",
+        "nr10_estados"
+      ],
+      "x": 44,
+      "y": 1019,
+      "w": 1322,
+      "h": 322
+    },
+    {
+      "id": "nr10_tick",
+      "type": "inject",
+      "z": "6a09c3f845bb0be5",
+      "g": "nr10_diagnostico",
+      "name": "TICK: vigencia cada 30 s",
+      "props": [
+        {
+          "p": "payload"
+        }
+      ],
+      "repeat": "30",
+      "crontab": "",
+      "once": true,
+      "onceDelay": 0.5,
+      "topic": "",
+      "payload": "",
+      "payloadType": "date",
+      "x": 240,
+      "y": 1080,
+      "wires": [
+        [
+          "nr10_vigencia"
+        ]
+      ]
+    },
+    {
+      "id": "nr10_vigencia",
+      "type": "function",
+      "z": "6a09c3f845bb0be5",
+      "g": "nr10_diagnostico",
+      "name": "CHECK: vigencia desde el arranque",
+      "func": "// Tick independiente: funciona incluso si nunca llegó telemetría tras arrancar.\nconst now = Date.now();\nlet started = context.get(\"startedAt\");\nif (!Number.isFinite(started)) { started = now; context.set(\"startedAt\", started); }\nconst configured = env.get(\"TELEMETRIA_TIMEOUT_S\");\nconst seconds = configured === undefined || configured === \"\" ? 900 : Number(configured);\nif (!Number.isFinite(seconds) || seconds < 30 || seconds > 86400) {\n    node.error(\"TELEMETRIA_TIMEOUT_S debe estar entre 30 y 86400\", {topic: \"vigencia\"});\n    return null;\n}\nconst received = flow.get(\"telemetria_recibida_ms\");\nconst reference = Number.isFinite(received) && received >= started && received <= now ? received : started;\nconst offline = now - reference >= seconds * 1000;\nnode.status({fill: offline ? \"yellow\" : \"green\", shape: offline ? \"ring\" : \"dot\", text: offline ? \"Sin telemetría vigente\" : \"Esperando / recepción vigente\"});\nconst before = context.get(\"offline\") === true;\ncontext.set(\"offline\", offline);\nif (before === offline) return null;\nreturn {topic: \"fermentador/diagnostico\", payload: {event: offline ? \"TELEMETRIA_AUSENTE\" : \"TELEMETRIA_RECUPERADA\", received_at_ms: Number.isFinite(received) ? received : null, checked_at_ms: now}};\n",
+      "outputs": 1,
+      "noerr": 0,
+      "initialize": "context.set(\"startedAt\", Date.now()); context.set(\"offline\", false);",
+      "finalize": "",
+      "libs": [],
+      "timeout": 0,
+      "x": 670,
+      "y": 1080,
+      "wires": [
+        [
+          "nr10_eventos"
+        ]
+      ]
+    },
+    {
+      "id": "nr10_eventos",
+      "type": "debug",
+      "z": "6a09c3f845bb0be5",
+      "g": "nr10_diagnostico",
+      "name": "DEBUG: pérdida y recuperación",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "payload",
+      "targetType": "msg",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 1120,
+      "y": 1080,
+      "wires": []
+    },
+    {
+      "id": "nr10_catch",
+      "type": "catch",
+      "z": "6a09c3f845bb0be5",
+      "g": "nr10_diagnostico",
+      "name": "CATCH: errores del fermentador",
+      "scope": [
+        "05ef2ed6ad6fdc38",
+        "183d81f953a891ba",
+        "48dcb958f555ae77",
+        "ea2429329788f701",
+        "cd4ca9e64daadf17",
+        "45246b272efb8409",
+        "5a0582668ed9c9ae",
+        "48f695cfed13afd8",
+        "fbf131f18cb09f3d",
+        "44c07f25b44c64fe",
+        "416924024672d3bd",
+        "1c1a749e7a746326",
+        "91228d4897e037d4",
+        "b6844984558a8c68",
+        "fd03135617c9bfa8",
+        "2851528834bc5f7c",
+        "b1999152cc022d09",
+        "23a7bec7054cc411",
+        "nr10_validar",
+        "nr10_vigencia"
+      ],
+      "uncaught": false,
+      "x": 270,
+      "y": 1180,
+      "wires": [
+        [
+          "nr10_errores"
+        ]
+      ]
+    },
+    {
+      "id": "nr10_errores",
+      "type": "debug",
+      "z": "6a09c3f845bb0be5",
+      "g": "nr10_diagnostico",
+      "name": "DEBUG: errores de nodos",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "error",
+      "targetType": "msg",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 1110,
+      "y": 1180,
+      "wires": []
+    },
+    {
+      "id": "nr10_status",
+      "type": "status",
+      "z": "6a09c3f845bb0be5",
+      "g": "nr10_diagnostico",
+      "name": "STATUS: MQTT e InfluxDB",
+      "scope": [
+        "05ef2ed6ad6fdc38",
+        "44c07f25b44c64fe",
+        "ea2429329788f701",
+        "fd03135617c9bfa8"
+      ],
+      "x": 270,
+      "y": 1280,
+      "wires": [
+        [
+          "nr10_estados"
+        ]
+      ]
+    },
+    {
+      "id": "nr10_estados",
+      "type": "debug",
+      "z": "6a09c3f845bb0be5",
+      "g": "nr10_diagnostico",
+      "name": "DEBUG: estado de conexiones",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "status",
+      "targetType": "msg",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 1110,
+      "y": 1280,
+      "wires": []
+    }
+  ]
+}

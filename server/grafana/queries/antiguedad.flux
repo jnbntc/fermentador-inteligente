@@ -1,0 +1,7 @@
+from(bucket: "telemetria_birra")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r._measurement == "fermentador")
+  |> filter(fn: (r) => r._field == "message_seq")
+  |> group()
+  |> last()
+  |> map(fn: (r) => ({_time: r._time, _field: "Antigüedad", _value: float(v: int(v: v.timeRangeStop) - int(v: r._time)) / 1000000000.0}))

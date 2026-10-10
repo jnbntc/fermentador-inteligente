@@ -118,7 +118,7 @@ Ejemplo simulado y abreviado:
 }
 ```
 
-MQTT publica cada diez segundos mientras está conectado; `STATUS` permite observar sin red. Temperaturas inválidas se representan como `null`. Se conservan los alias `rele` y `setpoint`; los consumidores deben revisar validez antes de almacenar/usar temperatura. También se incluyen causas de falla de sensor, rechazos, pérdidas de conexión, eventos descartados y mayor intervalo entre ciclos. La integración de estos campos con InfluxDB/Grafana aún necesita prueba.
+MQTT publica cada diez segundos mientras está conectado; `STATUS` permite observar sin red. Temperaturas inválidas se representan como `null`. Se conservan los alias `rele` y `setpoint`; los consumidores deben revisar validez antes de almacenar/usar temperatura. También se incluyen causas de falla de sensor, rechazos, pérdidas de conexión, eventos descartados y mayor intervalo entre ciclos. El 10 de octubre de 2026 se verificó la recepción, escritura y lectura de estos campos en InfluxDB y su visualización en Grafana con el ESP32 en banco. La refrigeración real sigue pendiente (FASE D).
 
 Uptime se acumula con tiempo monotónico y no necesita NTP. El contador de mensajes es por boot; QoS 0 no garantiza entrega y no se reenvía el historial offline. Tras recuperar conexión se publican estado actual y contadores de pérdidas.
 
@@ -131,3 +131,12 @@ scripts/test_host.sh
 Requiere un compilador C++ (`CXX` configurable) y Python 3. Incluye los casos A–J y recuperación, mantenimiento, overflow de tiempo, parser estricto, salida ACTIVE LOW, DRY_RUN y JSON. Conserva las pruebas del guard y de recetas existentes. Compilar no equivale a validar sensores, contacto del relé, polarización durante boot ni refrigeración real.
 
 Ver [arquitectura y transiciones](docs/BASELINE_DESIGN.md) y [pruebas físicas](docs/HARDWARE_VALIDATION.md). Esta etapa no se declara terminada hasta completar y registrar sus criterios físicos.
+
+
+## Supervisión: Node-RED y Grafana
+
+La [mejora de Node-RED](server/nodered/README.md) valida la telemetría, corrige la lectura y escritura del progreso persistente, distingue consigna calculada/aplicada y detecta ausencia de mensajes desde el arranque. Fue desplegada y verificada con 48 nodos activos; sus funciones también pasan 20 pruebas aisladas en Node.js 16 y 24. La publicación de consignas MQTT, Telegram y el inicio de lote permanecen bloqueados en esta etapa.
+
+El [dashboard de Grafana](server/grafana/README.md) muestra temperaturas, consigna aplicada, desvío, estado del controlador, vigencia, sensores y diagnóstico. El perfil de prueba se presenta por separado. Corrige el aprovisionamiento incompatible y el cálculo de progreso desde la primera medición histórica. El archivo JSON y las consultas Flux son reproducibles y no contienen credenciales.
+
+Se verificaron la integración real MQTT → Node-RED → InfluxDB → Grafana, 30 consultas de lectura y los paneles en navegador. Los datos corresponden a un ensayo de banco sin compresor; **FASE D pendiente**. Ver [respaldo, despliegue y límites de validación](docs/SERVER_DEPLOYMENT.md).

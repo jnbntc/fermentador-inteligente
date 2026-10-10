@@ -1,0 +1,7 @@
+from(bucket: "telemetria_birra")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r._measurement == "fermentador")
+  |> filter(fn: (r) => r._field == "mosto" or r._field == "ambiente")
+  |> filter(fn: (r) => (r._field == "mosto" and r._value >= -5.0 and r._value <= 40.0) or (r._field == "ambiente" and r._value >= -20.0 and r._value <= 60.0))
+  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: true)
+  |> map(fn: (r) => ({r with _field: if r._field == "mosto" then "MOSTO" else "AMBIENTE"}))

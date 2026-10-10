@@ -1,0 +1,817 @@
+[
+  {
+    "id": "6a09c3f845bb0be5",
+    "type": "tab",
+    "label": "Birra",
+    "disabled": false,
+    "info": "",
+    "env": []
+  },
+  {
+    "id": "6f187c8768edf26d",
+    "type": "tab",
+    "label": "Clima",
+    "disabled": false,
+    "info": "",
+    "env": []
+  },
+  {
+    "id": "dda619d5884cecdf",
+    "type": "group",
+    "z": "6a09c3f845bb0be5",
+    "name": "Pipeline de Adquisición y Persistencia",
+    "style": {
+      "fill": "#bfdbef",
+      "label": true,
+      "color": "#000000"
+    },
+    "nodes": [
+      "05ef2ed6ad6fdc38",
+      "fbf131f18cb09f3d",
+      "44c07f25b44c64fe",
+      "5915461a27741a55"
+    ],
+    "x": 44,
+    "y": 39,
+    "w": 862,
+    "h": 142
+  },
+  {
+    "id": "4b2ac603bb7bd26b",
+    "type": "group",
+    "z": "6a09c3f845bb0be5",
+    "name": "Motor de Observabilidad (Alertas Críticas)",
+    "style": {
+      "fill": "#ffbfbf",
+      "label": true,
+      "color": "#000000"
+    },
+    "nodes": [
+      "5a0582668ed9c9ae",
+      "48f695cfed13afd8",
+      "2851528834bc5f7c",
+      "b1999152cc022d09",
+      "45246b272efb8409",
+      "23a7bec7054cc411",
+      "416924024672d3bd"
+    ],
+    "x": 354,
+    "y": 239,
+    "w": 1032,
+    "h": 162
+  },
+  {
+    "id": "93751e838cbcf62b",
+    "type": "group",
+    "z": "6a09c3f845bb0be5",
+    "name": "Orquestador PID (Máquina de Estado)",
+    "style": {
+      "fill": "#e3f3d3",
+      "label": true,
+      "color": "#000000"
+    },
+    "nodes": [
+      "48dcb958f555ae77",
+      "183d81f953a891ba",
+      "ea2429329788f701",
+      "cd4ca9e64daadf17",
+      "a54f710e658163de",
+      "1c1a749e7a746326",
+      "91228d4897e037d4",
+      "b6844984558a8c68",
+      "fd03135617c9bfa8"
+    ],
+    "x": 54,
+    "y": 479,
+    "w": 1312,
+    "h": 282
+  },
+  {
+    "id": "c204e604c151a016",
+    "type": "mqtt-broker",
+    "name": "MQTT",
+    "broker": "${MQTT_HOST}",
+    "port": 1883,
+    "clientid": "",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": 4,
+    "keepalive": 60,
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthRetain": "false",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closeRetain": "false",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willRetain": "false",
+    "willPayload": "",
+    "willMsg": {},
+    "userProps": "",
+    "sessionExpiry": ""
+  },
+  {
+    "id": "22dcfff3fcd355bd",
+    "type": "influxdb",
+    "hostname": "${SERVICE_HOST}",
+    "port": "8086",
+    "protocol": "http",
+    "database": "database",
+    "name": "endpoint",
+    "usetls": false,
+    "tls": "",
+    "influxdbVersion": "2.0",
+    "url": "${INFLUX_URL}",
+    "timeout": "10",
+    "rejectUnauthorized": true
+  },
+  {
+    "id": "27cda9cfab8cf680",
+    "type": "telegram bot",
+    "botname": "",
+    "usernames": "",
+    "chatids": "",
+    "baseapiurl": "",
+    "testenvironment": false,
+    "updatemode": "polling",
+    "pollinterval": 300,
+    "usesocks": false,
+    "sockshost": "",
+    "socksprotocol": "socks5",
+    "socksport": 6667,
+    "socksusername": "",
+    "sockspassword": "",
+    "bothost": "",
+    "botpath": "",
+    "localbothost": "${SERVICE_HOST}",
+    "localbotport": 8443,
+    "publicbotport": 8443,
+    "privatekey": "",
+    "certificate": "",
+    "useselfsignedcertificate": "",
+    "sslterminated": false,
+    "verboselogging": false
+  },
+  {
+    "id": "ae07bddb0cc4045b",
+    "type": "ui-theme",
+    "name": "Default Theme",
+    "colors": {
+      "surface": "#ffffff",
+      "primary": "#0094CE",
+      "bgPage": "#eeeeee",
+      "groupBg": "#ffffff",
+      "groupOutline": "#cccccc"
+    },
+    "sizes": {
+      "density": "default",
+      "pagePadding": "12px",
+      "groupGap": "12px",
+      "groupBorderRadius": "4px",
+      "widgetGap": "12px"
+    }
+  },
+  {
+    "id": "4fd925acedee4aae",
+    "type": "ui-base",
+    "name": "My Dashboard",
+    "path": "/dashboard",
+    "appIcon": "",
+    "includeClientData": true,
+    "acceptsClientConfig": [
+      "ui-notification",
+      "ui-control"
+    ],
+    "showPathInSidebar": false,
+    "headerContent": "page",
+    "navigationStyle": "default",
+    "titleBarStyle": "default",
+    "showReconnectNotification": true,
+    "notificationDisplayTime": 1,
+    "showDisconnectNotification": true,
+    "allowInstall": false
+  },
+  {
+    "id": "cac74dd9f94eda72",
+    "type": "ui-page",
+    "name": "Page 1",
+    "ui": "4fd925acedee4aae",
+    "path": "/page1",
+    "icon": "home",
+    "layout": "grid",
+    "theme": "ae07bddb0cc4045b",
+    "breakpoints": [
+      {
+        "name": "Default",
+        "px": 0,
+        "cols": 3
+      },
+      {
+        "name": "Tablet",
+        "px": 576,
+        "cols": 6
+      },
+      {
+        "name": "Small Desktop",
+        "px": 768,
+        "cols": 9
+      },
+      {
+        "name": "Desktop",
+        "px": 1024,
+        "cols": 12
+      }
+    ],
+    "order": 1,
+    "className": "",
+    "visible": "true",
+    "disabled": "false"
+  },
+  {
+    "id": "7460cc86e83ad374",
+    "type": "ui-group",
+    "name": "Group 1",
+    "page": "cac74dd9f94eda72",
+    "width": 6,
+    "height": 1,
+    "order": 1,
+    "showTitle": true,
+    "className": "",
+    "visible": true,
+    "disabled": false,
+    "groupType": "default"
+  },
+  {
+    "id": "7c1111cae669aa4b",
+    "type": "mqtt-broker",
+    "name": "birra_broker",
+    "broker": "${MQTT_HOST}",
+    "port": 1883,
+    "clientid": "",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": 4,
+    "keepalive": 60,
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthRetain": "false",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closeRetain": "false",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willRetain": "false",
+    "willPayload": "",
+    "willMsg": {},
+    "userProps": "",
+    "sessionExpiry": ""
+  },
+  {
+    "id": "05ef2ed6ad6fdc38",
+    "type": "mqtt in",
+    "z": "6a09c3f845bb0be5",
+    "g": "dda619d5884cecdf",
+    "name": "IN: MQTT Telemetría",
+    "topic": "birra/telemetria",
+    "qos": "2",
+    "datatype": "json",
+    "broker": "c204e604c151a016",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 170,
+    "y": 100,
+    "wires": [
+      [
+        "5915461a27741a55",
+        "5a0582668ed9c9ae",
+        "fbf131f18cb09f3d",
+        "2851528834bc5f7c"
+      ]
+    ]
+  },
+  {
+    "id": "5915461a27741a55",
+    "type": "debug",
+    "z": "6a09c3f845bb0be5",
+    "g": "dda619d5884cecdf",
+    "name": "DEBUG: Raw Telemetría",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 490,
+    "y": 140,
+    "wires": []
+  },
+  {
+    "id": "183d81f953a891ba",
+    "type": "inject",
+    "z": "6a09c3f845bb0be5",
+    "g": "93751e838cbcf62b",
+    "name": "CRON: 10m Tick",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "600",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 550,
+    "y": 520,
+    "wires": [
+      [
+        "48dcb958f555ae77"
+      ]
+    ]
+  },
+  {
+    "id": "48dcb958f555ae77",
+    "type": "function",
+    "z": "6a09c3f845bb0be5",
+    "g": "93751e838cbcf62b",
+    "name": "CORE: Orquestador PID",
+    "func": "// ==========================================\n// 1. RECUPERACIÓN DE DATOS Y ESTADO\n// ==========================================\n// Volvemos a exigir lectura desde disco físico (\"file\")\nconst receta = flow.get(\"receta_activa\", \"file\");\nconst fechaInicio = flow.get(\"inicio_fermentacion\", \"file\");\n\n// Si no hay receta cargada o no hay fecha de inicio, estamos en Standby\nif (!receta || !fechaInicio) {\n    node.status({ fill: \"grey\", shape: \"ring\", text: \"Standby\" });\n    return null;\n}\n\n// Cálculo de tiempo (SIN Time Warp)\nconst msTranscurridos = Date.now() - fechaInicio;\nconst diasTranscurridos = msTranscurridos / (1000 * 60 * 60 * 24);\n\nlet setpointCalculado = receta[0].temp;\n\n// ==========================================\n// 3. MOTOR DE INTERPOLACIÓN TÉRMICA\n// ==========================================\nfor (let i = 0; i < receta.length - 1; i++) {\n    let p1 = receta[i];\n    let p2 = receta[i + 1];\n\n    if (diasTranscurridos >= p1.dia && diasTranscurridos <= p2.dia) {\n        // Cálculo de la pendiente (y = mx + b)\n        let deltaTemp = p2.temp - p1.temp;\n        let deltaDias = p2.dia - p1.dia;\n        let fraccionDeRampa = (diasTranscurridos - p1.dia) / deltaDias;\n\n        setpointCalculado = p1.temp + (deltaTemp * fraccionDeRampa);\n        break;\n    } else if (diasTranscurridos > receta[receta.length - 1].dia) {\n        // Si superamos el día final, mantenemos el frío indefinidamente\n        setpointCalculado = receta[receta.length - 1].temp;\n    }\n}\n\n// ==========================================\n// 4. CÁLCULO DE TIEMPOS Y TELEMETRÍA UI\n// ==========================================\nlet diasTotales = receta[receta.length - 1].dia;\nlet diasRestantes = Math.max(0, diasTotales - diasTranscurridos);\n\n// Recuperación persistente del último estado enviado\nlet ultimoSetpoint = flow.get(\"ultimo_setpoint\", \"file\");\nsetpointCalculado = Math.round(setpointCalculado * 100) / 100;\n\nnode.status({\n    fill: \"green\",\n    shape: \"dot\",\n    text: `Día ${(diasTranscurridos).toFixed(2)} | SP: ${setpointCalculado}°C`\n});\n\nlet msgUI = {\n    payload: {\n        setpoint: parseFloat(setpointCalculado),\n        transcurridos: parseFloat(diasTranscurridos.toFixed(2)),\n        restantes: parseFloat(diasRestantes.toFixed(2)),\n        total: parseFloat(diasTotales)\n    }\n};\n\n// Escritura persistente condicionada para no fundir el SSD con I/O inútil\nif (ultimoSetpoint === undefined || Math.abs(setpointCalculado - ultimoSetpoint) >= 0.05) {\n    flow.set(\"ultimo_setpoint\", setpointCalculado, \"file\");\n    return [{ payload: setpointCalculado.toString() }, msgUI];\n}\n\n// Persistencia de la telemetría UI\nflow.set(\"dias_transcurridos\", parseFloat(diasTranscurridos.toFixed(2)), \"file\");\nflow.set(\"dias_restantes\", parseFloat(diasRestantes.toFixed(2)), \"file\");\n\nreturn [null, msgUI];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 890,
+    "y": 580,
+    "wires": [
+      [
+        "ea2429329788f701"
+      ],
+      [
+        "1c1a749e7a746326",
+        "fd03135617c9bfa8"
+      ]
+    ]
+  },
+  {
+    "id": "ea2429329788f701",
+    "type": "mqtt out",
+    "z": "6a09c3f845bb0be5",
+    "g": "93751e838cbcf62b",
+    "name": "OUT: MQTT Setpoint",
+    "topic": "birra/setpoint",
+    "qos": "",
+    "retain": "true",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "c204e604c151a016",
+    "x": 1220,
+    "y": 560,
+    "wires": []
+  },
+  {
+    "id": "cd4ca9e64daadf17",
+    "type": "function",
+    "z": "6a09c3f845bb0be5",
+    "g": "93751e838cbcf62b",
+    "name": "STATE: Init Fecha Cero",
+    "func": "let ahora = Date.now();\n\n// Guardamos en DISCO (Persistente) para sobrevivir reinicios de Docker/Cortes de luz\nflow.set(\"inicio_fermentacion\", ahora, \"file\");\nflow.set(\"ultimo_setpoint\", null, \"file\");\n\nmsg.payload = \"Lote inicializado a las: \" + new Date(ahora).toLocaleString();\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 590,
+    "y": 620,
+    "wires": [
+      [
+        "a54f710e658163de",
+        "48dcb958f555ae77"
+      ]
+    ]
+  },
+  {
+    "id": "a54f710e658163de",
+    "type": "debug",
+    "z": "6a09c3f845bb0be5",
+    "g": "93751e838cbcf62b",
+    "name": "DEBUG: Raw Telemetría",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 720,
+    "wires": []
+  },
+  {
+    "id": "45246b272efb8409",
+    "type": "function",
+    "z": "6a09c3f845bb0be5",
+    "g": "4b2ac603bb7bd26b",
+    "name": "FORMAT: Mensaje Alerta",
+    "func": "// Capturamos el texto crudo que viene del nodo anterior\nlet mensajeCrudo = msg.payload;\n\nmsg.payload = {\n    chatId: env.get(\"TELEGRAM_CHAT_ID\"), // <--- REEMPLAZÁ ESTO POR TU CHAT ID EXACTO\n    type: \"message\",\n    content: mensajeCrudo\n};\n\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 990,
+    "y": 280,
+    "wires": [
+      [
+        "416924024672d3bd"
+      ]
+    ]
+  },
+  {
+    "id": "5a0582668ed9c9ae",
+    "type": "function",
+    "z": "6a09c3f845bb0be5",
+    "g": "4b2ac603bb7bd26b",
+    "name": "CHECK: Alarma Térmica",
+    "func": "// Validamos que el payload sea un objeto JSON parseado\nif (typeof msg.payload !== \"object\") return null;\n\nlet mosto = msg.payload.mosto;\nlet setpoint = msg.payload.setpoint;\n\n// Si falta data, abortamos\nif (mosto === undefined || setpoint === undefined) return null;\n\n// Calculamos el diferencial\nlet delta = Math.abs(mosto - setpoint);\n\n// UMBRAL CRÍTICO: Si el mosto se desvía 2°C o más del objetivo\nif (delta >= 20.0) {\n    let alerta = `🚨 ALERTA CRÍTICA: Desvío térmico.\\n\\n`;\n    alerta += `🌡 Mosto: ${mosto}°C\\n`;\n    alerta += `🎯 Setpoint: ${setpoint}°C\\n`;\n    alerta += `📈 Delta T: ${delta.toFixed(2)}°C\\n\\n`;\n    alerta += `Revisar compresor o estado del relé en el nodo Edge.`;\n\n    return { payload: alerta };\n}\n\n// Si la temperatura es normal, el flujo muere acá\nreturn null;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 490,
+    "y": 280,
+    "wires": [
+      [
+        "48f695cfed13afd8"
+      ]
+    ]
+  },
+  {
+    "id": "48f695cfed13afd8",
+    "type": "delay",
+    "z": "6a09c3f845bb0be5",
+    "g": "4b2ac603bb7bd26b",
+    "name": "RATE: 30m Limit",
+    "pauseType": "rate",
+    "timeout": "5",
+    "timeoutUnits": "seconds",
+    "rate": "1",
+    "nbRateUnits": "30",
+    "rateUnits": "minute",
+    "randomFirst": "1",
+    "randomLast": "5",
+    "randomUnits": "seconds",
+    "drop": true,
+    "allowrate": false,
+    "outputs": 1,
+    "x": 730,
+    "y": 280,
+    "wires": [
+      [
+        "45246b272efb8409"
+      ]
+    ]
+  },
+  {
+    "id": "fbf131f18cb09f3d",
+    "type": "function",
+    "z": "6a09c3f845bb0be5",
+    "g": "dda619d5884cecdf",
+    "name": "PARSE: JSON Telemetría",
+    "func": "// Si no es un objeto JSON válido, abortamos\nif (typeof msg.payload !== \"object\") return msg;\n\n// Levantamos las variables de tiempo de la RAM de Node-RED\nlet dTrans = flow.get(\"dias_transcurridos\") || 0;\nlet dRest = flow.get(\"dias_restantes\") || 0;\n\n// Inyectamos la data al payload que va a InfluxDB\nmsg.payload.dias_trans = dTrans;\nmsg.payload.dias_rest = dRest;\n\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 490,
+    "y": 80,
+    "wires": [
+      [
+        "44c07f25b44c64fe"
+      ]
+    ]
+  },
+  {
+    "id": "44c07f25b44c64fe",
+    "type": "influxdb out",
+    "z": "6a09c3f845bb0be5",
+    "g": "dda619d5884cecdf",
+    "influxdb": "22dcfff3fcd355bd",
+    "name": "OUT: InfluxDB Sensores",
+    "measurement": "fermentador",
+    "precision": "",
+    "retentionPolicy": "",
+    "database": "database",
+    "precisionV18FluxV20": "ms",
+    "retentionPolicyV18Flux": "",
+    "org": "brewery_ops",
+    "bucket": "telemetria_birra",
+    "x": 770,
+    "y": 80,
+    "wires": []
+  },
+  {
+    "id": "416924024672d3bd",
+    "type": "telegram sender",
+    "z": "6a09c3f845bb0be5",
+    "g": "4b2ac603bb7bd26b",
+    "name": "OUT: Telegram Bot",
+    "bot": "27cda9cfab8cf680",
+    "haserroroutput": false,
+    "outputs": 1,
+    "x": 1270,
+    "y": 280,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "1c1a749e7a746326",
+    "type": "ui-text",
+    "z": "6a09c3f845bb0be5",
+    "g": "93751e838cbcf62b",
+    "group": "7460cc86e83ad374",
+    "order": 2,
+    "width": "6",
+    "height": "1",
+    "name": "UI: Text Setpoint",
+    "label": "🎯 Setpoint Activo (°C):",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 16,
+    "color": "#717171",
+    "wrapText": false,
+    "className": "",
+    "value": "payload.setpoint",
+    "valueType": "msg",
+    "x": 1200,
+    "y": 620,
+    "wires": []
+  },
+  {
+    "id": "91228d4897e037d4",
+    "type": "inject",
+    "z": "6a09c3f845bb0be5",
+    "g": "93751e838cbcf62b",
+    "name": "UI: Btn Iniciar Lote",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 190,
+    "y": 520,
+    "wires": [
+      [
+        "b6844984558a8c68"
+      ]
+    ]
+  },
+  {
+    "id": "b6844984558a8c68",
+    "type": "function",
+    "z": "6a09c3f845bb0be5",
+    "g": "93751e838cbcf62b",
+    "name": "CONF: Receta Ale",
+    "func": "// ==========================================\n// CONFIGURACIÓN DE LA RECETA ACTUAL\n// ==========================================\n// Podés duplicar este nodo para diferentes cervezas\n// y conectar el que quieras usar al botón de \"Iniciar\".\n\nconst recetaActual = {\n    nombre: \"Ale Americana (US-05)\",\n    perfil: [\n        { dia: 0, temp: 3.0 },  // Inoculación\n        { dia: 1, temp: 3.0 },  // Fin Fase Log\n        { dia: 2, temp: 3.0 },  // Pico Diacetilo\n        { dia: 6, temp: 3.0 },  // Fin Diacetilo\n        { dia: 7, temp: 3.0 },   // Cold Crash\n        { dia: 10, temp: 3.0 }   // Fin Acondicionamiento\n    ]\n};\n\n// Guardamos la receta en el disco del contenedor (\"file\")\nflow.set(\"receta_activa\", recetaActual.perfil, \"file\");\nflow.set(\"nombre_receta\", recetaActual.nombre, \"file\");\n\n// Pasamos el mensaje al siguiente nodo (Setear Fecha Cero)\nmsg.payload = \"Cargando receta: \" + recetaActual.nombre;\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 310,
+    "y": 620,
+    "wires": [
+      [
+        "cd4ca9e64daadf17"
+      ]
+    ]
+  },
+  {
+    "id": "fd03135617c9bfa8",
+    "type": "influxdb out",
+    "z": "6a09c3f845bb0be5",
+    "g": "93751e838cbcf62b",
+    "influxdb": "22dcfff3fcd355bd",
+    "name": "OUT: Influx Orquestador",
+    "measurement": "estado_orquestador",
+    "precision": "",
+    "retentionPolicy": "",
+    "database": "database",
+    "precisionV18FluxV20": "ms",
+    "retentionPolicyV18Flux": "",
+    "org": "brewery_ops",
+    "bucket": "telemetria_birra",
+    "x": 1230,
+    "y": 680,
+    "wires": []
+  },
+  {
+    "id": "2851528834bc5f7c",
+    "type": "trigger",
+    "z": "6a09c3f845bb0be5",
+    "g": "4b2ac603bb7bd26b",
+    "name": "WDOG: 15m Timeout",
+    "op1": "",
+    "op2": "",
+    "op1type": "nul",
+    "op2type": "pay",
+    "duration": "15",
+    "extend": true,
+    "overrideDelay": false,
+    "units": "min",
+    "reset": "",
+    "bytopic": "all",
+    "topic": "topic",
+    "outputs": 1,
+    "x": 480,
+    "y": 360,
+    "wires": [
+      [
+        "b1999152cc022d09"
+      ]
+    ]
+  },
+  {
+    "id": "b1999152cc022d09",
+    "type": "rbe",
+    "z": "6a09c3f845bb0be5",
+    "g": "4b2ac603bb7bd26b",
+    "name": "FILTER: Anti-Spam Caída",
+    "func": "rbe",
+    "gap": "",
+    "start": "",
+    "inout": "out",
+    "septopics": true,
+    "property": "payload",
+    "topi": "topic",
+    "x": 730,
+    "y": 360,
+    "wires": [
+      [
+        "23a7bec7054cc411"
+      ]
+    ]
+  },
+  {
+    "id": "23a7bec7054cc411",
+    "type": "function",
+    "z": "6a09c3f845bb0be5",
+    "g": "4b2ac603bb7bd26b",
+    "name": "FORMAT: Alerta Caída",
+    "func": "msg.payload = {\n    chatId: env.get(\"TELEGRAM_CHAT_ID\"),\n    type: \"message\",\n    content: \"⚠️ ALERTA CRÍTICA: El ESP32 del fermentador dejó de reportar telemetría hace más de 15 minutos. Posible corte de energía o caída de red física.\"\n};\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 980,
+    "y": 340,
+    "wires": [
+      [
+        "416924024672d3bd"
+      ]
+    ]
+  },
+  {
+    "id": "14e29c8dc2f4a69d",
+    "type": "mqtt in",
+    "z": "6f187c8768edf26d",
+    "name": "",
+    "topic": "telemetria/exterior/clima",
+    "qos": "2",
+    "datatype": "utf8",
+    "broker": "7c1111cae669aa4b",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 140,
+    "y": 120,
+    "wires": [
+      [
+        "2e8af2b968a4d503"
+      ]
+    ]
+  },
+  {
+    "id": "2e8af2b968a4d503",
+    "type": "json",
+    "z": "6f187c8768edf26d",
+    "name": "",
+    "property": "payload",
+    "action": "",
+    "pretty": false,
+    "x": 370,
+    "y": 120,
+    "wires": [
+      [
+        "b77727691f77bfb8"
+      ]
+    ]
+  },
+  {
+    "id": "b77727691f77bfb8",
+    "type": "function",
+    "z": "6f187c8768edf26d",
+    "name": "function 1",
+    "func": "// Extraemos los valores parseados y los casteamos a Float\nlet temp = parseFloat(msg.payload.temperatura_c);\nlet hum = parseFloat(msg.payload.humedad_relativa);\nlet qnh = parseFloat(msg.payload.presion_qnh_hpa);\nlet rssi = parseInt(msg.payload.rssi_wifi);\n\n// Formato InfluxDB v2: msg.payload = [ {fields}, {tags} ]\nmsg.payload = [\n    {\n        temperatura: temp,\n        humedad: hum,\n        presion: qnh,\n        rssi: rssi\n    },\n    {\n        sensor: \"bmp280_am2301\",\n        ubicacion: \"exterior_techo\"\n    }\n];\n\n// El measurement (la \"tabla\" de Influx)\nmsg.measurement = \"clima\";\n\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 560,
+    "y": 120,
+    "wires": [
+      [
+        "d9ed4ab7577b1dd1",
+        "c821b4e2d891fbaf"
+      ]
+    ]
+  },
+  {
+    "id": "d9ed4ab7577b1dd1",
+    "type": "influxdb out",
+    "z": "6f187c8768edf26d",
+    "influxdb": "22dcfff3fcd355bd",
+    "name": "",
+    "measurement": "clima_real",
+    "precision": "",
+    "retentionPolicy": "",
+    "database": "database",
+    "precisionV18FluxV20": "ms",
+    "retentionPolicyV18Flux": "",
+    "org": "brewery_ops",
+    "bucket": "clima_real",
+    "x": 850,
+    "y": 120,
+    "wires": []
+  },
+  {
+    "id": "c821b4e2d891fbaf",
+    "type": "debug",
+    "z": "6f187c8768edf26d",
+    "name": "debug 1",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 800,
+    "y": 240,
+    "wires": []
+  }
+]
